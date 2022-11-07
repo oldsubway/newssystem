@@ -1,5 +1,9 @@
 import React from 'react'
-
-export default function App() {
-  return <div>App</div>
+import IndexRouter from './routes/IndexRouter'
+export default function NewsSandBox() {
+  return (
+    <div>
+      <IndexRouter />
+    </div>
+  )
 }
