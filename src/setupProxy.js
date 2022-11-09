@@ -1,10 +1,10 @@
 const { createProxyMiddleware } = require('http-proxy-middleware')
 
 module.exports = function (app) {
-  qpp.use(
-    '',
+  app.use(
+    '/ajax',
     createProxyMiddleware({
-      target: '',
+      target: 'http://localhost:7000',
       changeOrigin: true
     })
   )
