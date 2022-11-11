@@ -68,7 +68,7 @@ export default function RoleList() {
   }
   const confirmMethod = item => {
     confirm({
-      title: '你想要删除此权限吗?',
+      title: '你确定要删除吗?',
       icon: <ExclamationCircleOutlined />,
       cancelText: '取消',
       okText: '确定',
