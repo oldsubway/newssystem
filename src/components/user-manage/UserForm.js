@@ -1,7 +1,20 @@
-import React, { forwardRef } from 'react'
+import React, { forwardRef, useContext } from 'react'
 import { Form, Input, Select } from 'antd'
+import { GlobalContext } from '@/views/sandbox/user-manage/UserList'
 const UserForm = forwardRef((props, ref) => {
-  const { regionList, rolesList, regionDisabled, setRegionDisabled } = props
+  const { regionList, rolesList } = props
+  const { regionDisabled, setRegionDisabled, roleIdDisabled } = useContext(GlobalContext)
+
+  const changeRole = value => {
+    if (value === 1) {
+      ref.current.setFieldsValue({
+        region: ''
+      })
+      setRegionDisabled(true)
+    } else {
+      setRegionDisabled(false)
+    }
+  }
   return (
     <Form layout="vertical" ref={ref}>
       <Form.Item
@@ -46,24 +59,15 @@ const UserForm = forwardRef((props, ref) => {
         name="roleId"
         label="角色"
         rules={[
-          {
-            required: true,
-            message: '不能为空'
-          }
+          roleIdDisabled
+            ? { required: false }
+            : {
+                required: true,
+                message: '不能为空'
+              }
         ]}
       >
-        <Select
-          options={rolesList}
-          fieldNames={{ value: 'id', label: 'roleName' }}
-          onChange={value => {
-            if (value === 1) {
-              ref.current.setFieldValue('region', '')
-              setRegionDisabled(true)
-            } else {
-              setRegionDisabled(false)
-            }
-          }}
-        />
+        <Select disabled={roleIdDisabled} options={rolesList} onChange={changeRole} fieldNames={{ value: 'id', label: 'roleName' }} />
       </Form.Item>
     </Form>
   )

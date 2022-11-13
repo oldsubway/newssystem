@@ -1,0 +1,23 @@
+.loginBg {
+  background-color: rgb(35, 39, 65);
+  height: 100%;
+  overflow: 'hidden';
+}
+.formContainer {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  width: 500px;
+  height: 300px;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 20px;
+  z-index: 100;
+}
+.loginTitle {
+  color: white;
+  height: 80px;
+  line-height: 80px;
+  font-size: 30px;
+  text-align: center;
+}

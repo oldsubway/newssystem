@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { withRouter } from 'react-router-dom'
 import request from '../../utils/request'
 import './SlideMenu.css'
@@ -18,28 +18,35 @@ const iconList = {
   '/audit-manage': <UserOutlined />,
   '/publish-manage': <UserOutlined />
 }
-
 function SlideMenu(props) {
-  //循环渲染菜单
-  const renderMenu = useCallback(data => {
-    const new_data = data.map(item => {
-      const { title, key, children, pagepermisson } = item
-      if (pagepermisson === 1) {
-        if (children?.length > 0) return getItem(title, key, iconList[key], renderMenu(children))
-        return getItem(title, key, iconList[key])
-      }
-      return false
-    })
-    return new_data
-  }, [])
-  // 侧边栏菜单值
+  // 侧边栏菜单值  获取所有权限
   const [menu, setMenu] = useState([])
   useEffect(() => {
+    //  当前用户的权限
+    const {
+      role: { rights }
+    } = JSON.parse(localStorage.getItem('token'))
+    // 判断当前权限是否开启并判断当前用户是否有该权限
+    const checkPagepermission = (pagepermisson, key) => {
+      return pagepermisson && rights.includes(key)
+    }
+    //循环渲染菜单
+    const renderMenu = data => {
+      const new_data = data.map(item => {
+        const { title, key, children, pagepermisson } = item
+        if (checkPagepermission(pagepermisson, key)) {
+          if (children?.length > 0) return getItem(title, key, iconList[key], renderMenu(children))
+          return getItem(title, key, iconList[key])
+        }
+        return false
+      })
+      return new_data
+    }
     request.get('rights?_embed=children').then(res => {
       const data = renderMenu(res.data)
       setMenu(data)
     })
-  }, [renderMenu])
+  }, [])
 
   //得到每一个菜单项
   function getItem(label, key, icon, children, type) {

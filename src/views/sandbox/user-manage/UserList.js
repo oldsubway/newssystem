@@ -1,10 +1,11 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, createContext } from 'react'
 import request from 'utils/request'
 import { Button, Table, Modal, Switch } from 'antd'
 import { EditOutlined, DeleteOutlined, ExclamationCircleOutlined } from '@ant-design/icons'
 import UserForm from '@/components/user-manage/UserForm'
 const { confirm } = Modal
-
+const GlobalContext = createContext()
+export { GlobalContext }
 export default function UserList() {
   const [dataSource, setDataSource] = useState([])
   const [regionList, setRegionList] = useState([])
@@ -14,24 +15,24 @@ export default function UserList() {
   const [isUpdateOpen, setIsUpdateOpen] = useState(false)
   const updateForm = useRef()
   const [currentItem, setCurrentItem] = useState([])
-  // 状态提升控制区域是否禁用
   const [regionDisabled, setRegionDisabled] = useState(false)
+  const [roleIdDisabled, setRoleIdDisabled] = useState(false)
+  const { roleId, region, username } = JSON.parse(localStorage.getItem('token'))
   useEffect(() => {
-    request('/users?_expand=role').then(res => {
-      setDataSource(res.data)
+    request.get('/users?_expand=role').then(res => {
+      setDataSource(roleId === 1 ? res.data : res.data.filter(item => item.username === username || (item.region === region && item.roleId === 3)))
     })
-  }, [])
+  }, [roleId, region, username])
   useEffect(() => {
-    request('/regions').then(res => {
+    request.get('/regions').then(res => {
       setRegionList(res.data)
     })
   }, [])
   useEffect(() => {
-    request('/roles').then(res => {
+    request.get('/roles').then(res => {
       setrolesList(res.data)
     })
   }, [])
-
   const columns = [
     {
       title: '区域',
@@ -71,7 +72,7 @@ export default function UserList() {
             checked={roleState}
             disabled={item.default}
             onClick={() => {
-              handleChange(item)
+              handeleStateChange(item)
             }}
           ></Switch>
         )
@@ -97,7 +98,7 @@ export default function UserList() {
               icon={<EditOutlined />}
               disabled={item.default}
               onClick={() => {
-                handleUpdate(item)
+                openUpdateModal(item)
               }}
             />
           </div>
@@ -105,7 +106,42 @@ export default function UserList() {
       }
     }
   ]
-  // 删除操作
+  // 是否禁用区域和角色
+  const shouldDisabled = isAdd => {
+    if (roleId === 1) {
+      setRoleIdDisabled(false)
+      setRegionDisabled(false)
+    } else {
+      setRegionDisabled(true)
+      setRoleIdDisabled(true)
+      if (isAdd) {
+        setTimeout(() => {
+          addForm.current.setFieldsValue({
+            region,
+            roleId: 3
+          })
+          console.log(addForm.current.getFieldValue('roleId'))
+        }, 0)
+      }
+    }
+  }
+  // 打开添加表单
+  const openAddModal = () => {
+    setIsAddOpen(true)
+    shouldDisabled(true)
+  }
+  //添加操作
+  const addFormOk = () => {
+    addForm.current.validateFields().then(value => {
+      setIsAddOpen(false)
+      console.log(value.roleId)
+      // request.post('/users', { ...value, roleState: true, default: false }).then(res => {
+      //   setDataSource([...dataSource, { ...res.data, role: rolesList.filter(item => item.id === value.roleId)[0] }])
+      //   addForm.current.resetFields()
+      // })
+    })
+  }
+  // 打开确认删除对话框
   const confirmMethod = item => {
     confirm({
       title: '你确定要删除吗?',
@@ -121,32 +157,18 @@ export default function UserList() {
     setDataSource(dataSource.filter(data => data.id !== item.id))
     request.delete(`/users/${item.id}`)
   }
-  //添加操作
-  const addFormOk = () => {
-    addForm.current.validateFields().then(value => {
-      setIsAddOpen(false)
-      setRegionDisabled(false)
-      addForm.current.resetFields()
-      request.post('/users', { ...value, roleState: true, default: false }).then(res => {
-        setDataSource([...dataSource, { ...res.data, role: rolesList.filter(item => item.id === value.roleId)[0] }])
-      })
-    })
-  }
-  // 改变用户状态
-  const handleChange = item => {
+
+  // 更新用户状态
+  const handeleStateChange = item => {
     item.roleState = !item.roleState
     setDataSource([...dataSource])
     request.patch(`/users/${item.id}`, { roleState: item.roleState })
   }
-  // 更新操作
-  const handleUpdate = item => {
+  // 打开编辑表单
+  const openUpdateModal = item => {
     setIsUpdateOpen(true)
     setCurrentItem(item)
-    if (item.roleId === 1) {
-      setRegionDisabled(true)
-    } else {
-      setRegionDisabled(false)
-    }
+    shouldDisabled()
     setTimeout(() => {
       updateForm.current.setFieldsValue(item)
     }, 0)
@@ -158,7 +180,6 @@ export default function UserList() {
       setDataSource(
         dataSource.map(item => {
           if (item.id === currentItem.id) {
-            console.log(currentItem)
             return {
               ...item,
               ...value,
@@ -172,62 +193,40 @@ export default function UserList() {
     })
   }
   return (
-    <div>
-      <Button
-        type="primary"
-        onClick={() => {
-          setIsAddOpen(true)
-          setRegionDisabled(false)
-        }}
-      >
-        添加用户
-      </Button>
-      <Table dataSource={dataSource} columns={columns} rowKey={item => item.id} pagination={{ pageSize: 6 }} />
-      {/* 添加对话框表单 */}
-      <Modal
-        open={isAddOpen}
-        title="添加用户"
-        okText="确定"
-        cancelText="取消"
-        onCancel={() => {
-          setIsAddOpen(false)
-          addForm.current.resetFields()
-        }}
-        onOk={addFormOk}
-      >
-        <UserForm
-          ref={addForm}
-          regionList={regionList}
-          rolesList={rolesList}
-          regionDisabled={regionDisabled}
-          setRegionDisabled={flag => {
-            console.log(flag)
-            setRegionDisabled(flag)
+    <GlobalContext.Provider value={{ regionDisabled, setRegionDisabled, roleIdDisabled, setRoleIdDisabled }}>
+      <div>
+        <Button type="primary" onClick={openAddModal}>
+          添加用户
+        </Button>
+        <Table dataSource={dataSource} columns={columns} rowKey={item => item.id} pagination={{ pageSize: 6 }} />
+        {/* 添加对话框表单 */}
+        <Modal
+          open={isAddOpen}
+          title="添加用户"
+          okText="确定"
+          cancelText="取消"
+          onCancel={() => {
+            setIsAddOpen(false)
+            addForm.current.resetFields()
           }}
-        />
-      </Modal>
-      {/* 更新对话框表单 */}
-      <Modal
-        open={isUpdateOpen}
-        title="编辑用户"
-        okText="确定"
-        cancelText="取消"
-        onCancel={() => {
-          setIsUpdateOpen(false)
-        }}
-        onOk={updateFormOk}
-      >
-        <UserForm
-          ref={updateForm}
-          regionList={regionList}
-          rolesList={rolesList}
-          regionDisabled={regionDisabled}
-          setRegionDisabled={flag => {
-            console.log(flag)
-            setRegionDisabled(flag)
+          onOk={addFormOk}
+        >
+          <UserForm ref={addForm} regionList={regionList} rolesList={rolesList} />
+        </Modal>
+        {/* 更新对话框表单 */}
+        <Modal
+          open={isUpdateOpen}
+          title="编辑用户"
+          okText="确定"
+          cancelText="取消"
+          onCancel={() => {
+            setIsUpdateOpen(false)
           }}
-        />
-      </Modal>
-    </div>
+          onOk={updateFormOk}
+        >
+          <UserForm ref={updateForm} isUpdate regionList={regionList} rolesList={rolesList} />
+        </Modal>
+      </div>
+    </GlobalContext.Provider>
   )
 }
