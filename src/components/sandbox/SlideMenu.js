@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { withRouter } from 'react-router-dom'
-import request from '../../utils/request'
+import request from 'utils/request'
+import openKeysBus from '@/reducer/openKeysBus'
 import './SlideMenu.css'
-
 import { UploadOutlined, UserOutlined, VideoCameraOutlined } from '@ant-design/icons'
 import { Layout, Menu } from 'antd'
 const { Sider } = Layout
@@ -62,7 +62,12 @@ function SlideMenu(props) {
   const [collapsed] = useState(false)
 
   // 只展开当前父菜单
-  const [openKeys, setOpenKeys] = useState([props.location.pathname?.match(/\/(\w+)?(-\w+)?/)[0]])
+  const [openKeys, setOpenKeys] = useState([props.location.pathname?.match(/^\/[a-z-]*/)[0]])
+  useEffect(() => {
+    openKeysBus.subscribe(data => {
+      setOpenKeys(data)
+    })
+  }, [])
   const onOpenChange = keys => {
     const latestOpenKey = keys.find(key => openKeys.indexOf(key) === -1)
     if (rootSubmenuKeys.indexOf(latestOpenKey) === -1) {

@@ -134,11 +134,10 @@ export default function UserList() {
   const addFormOk = () => {
     addForm.current.validateFields().then(value => {
       setIsAddOpen(false)
-      console.log(value.roleId)
-      // request.post('/users', { ...value, roleState: true, default: false }).then(res => {
-      //   setDataSource([...dataSource, { ...res.data, role: rolesList.filter(item => item.id === value.roleId)[0] }])
-      //   addForm.current.resetFields()
-      // })
+      request.post('/users', { ...value, roleState: true, default: false }).then(res => {
+        setDataSource([...dataSource, { ...res.data, role: rolesList.filter(item => item.id === value.roleId)[0] }])
+        addForm.current.resetFields()
+      })
     })
   }
   // 打开确认删除对话框
