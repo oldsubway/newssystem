@@ -1,4 +1,6 @@
-import React, { useState } from 'react'
+import React from 'react'
+
+import { connect } from 'react-redux'
 
 import { MenuUnfoldOutlined, MenuFoldOutlined, UserOutlined } from '@ant-design/icons'
 import { Layout, Dropdown, Avatar } from 'antd'
@@ -6,10 +8,9 @@ import { withRouter } from 'react-router-dom'
 const { Header } = Layout
 
 const TopHeader = props => {
-  const [collapsed, setCollapsed] = useState(false)
   const { username, role } = JSON.parse(localStorage.getItem('token'))
   const items = [
-    { label: role.roleName, key: 'item-1' },
+    { label: role.roleName, key: 'rolename' },
     { label: '退出', danger: true, key: '/login' }
   ]
   const onClick = ({ key }) => {
@@ -20,11 +21,9 @@ const TopHeader = props => {
   }
   return (
     <Header className="site-layout-background">
-      {React.createElement(collapsed ? MenuUnfoldOutlined : MenuFoldOutlined, {
-        className: 'trigger',
-        onClick: () => setCollapsed(!collapsed)
+      {React.createElement(props.isCollapsed ? MenuUnfoldOutlined : MenuFoldOutlined, {
+        onClick: () => props.setCollapsed()
       })}
-      {/* {collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />} */}
       <div style={{ float: 'right' }}>
         <span>
           欢迎<span style={{ color: '#1890ff' }}>{username}</span>回来
@@ -36,7 +35,6 @@ const TopHeader = props => {
           }}
           placement="bottom"
           trigger={['hover', 'click']}
-          // onOpenChange
         >
           <Avatar size={48} icon={<UserOutlined />} />
         </Dropdown>
@@ -44,4 +42,16 @@ const TopHeader = props => {
     </Header>
   )
 }
-export default withRouter(TopHeader)
+
+const mapStateToProps = ({ CollapsedReduer: { isCollapsed } }) => ({
+  isCollapsed
+})
+
+const mapDispatchToProps = {
+  setCollapsed(payload) {
+    return {
+      type: 'change-collapsed'
+    }
+  }
+}
+export default connect(mapStateToProps, mapDispatchToProps)(withRouter(TopHeader))

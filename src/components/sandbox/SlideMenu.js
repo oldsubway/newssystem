@@ -1,23 +1,24 @@
 import React, { useEffect, useState } from 'react'
 import { withRouter } from 'react-router-dom'
 import request from 'utils/request'
-import openKeysBus from '@/reducer/openKeysBus'
 import './SlideMenu.css'
-import { UploadOutlined, UserOutlined, VideoCameraOutlined } from '@ant-design/icons'
+import { HomeOutlined, SettingOutlined, UserOutlined, BarsOutlined, GoldOutlined, UploadOutlined } from '@ant-design/icons'
 import { Layout, Menu } from 'antd'
+import { connect } from 'react-redux'
 const { Sider } = Layout
 
 //一级菜单key值数组
 const rootSubmenuKeys = ['/home', '/user-manage', '/right-manage', '/news-manage', '/audit-manage', '/publish-manage']
 //图标映射对象
 const iconList = {
-  '/home': <UserOutlined />,
+  '/home': <HomeOutlined />,
   '/user-manage': <UserOutlined />,
-  '/right-manage': <UploadOutlined />,
-  '/news-manage': <VideoCameraOutlined />,
-  '/audit-manage': <UserOutlined />,
-  '/publish-manage': <UserOutlined />
+  '/right-manage': <SettingOutlined />,
+  '/news-manage': <BarsOutlined />,
+  '/audit-manage': <GoldOutlined />,
+  '/publish-manage': <UploadOutlined />
 }
+
 function SlideMenu(props) {
   // 侧边栏菜单值  获取所有权限
   const [menu, setMenu] = useState([])
@@ -58,36 +59,28 @@ function SlideMenu(props) {
       type
     }
   }
-
-  const [collapsed] = useState(false)
-
   // 只展开当前父菜单
-  const [openKeys, setOpenKeys] = useState([props.location.pathname?.match(/^\/[a-z-]*/)[0]])
-  useEffect(() => {
-    openKeysBus.subscribe(data => {
-      setOpenKeys(data)
-    })
-  }, [])
   const onOpenChange = keys => {
-    const latestOpenKey = keys.find(key => openKeys.indexOf(key) === -1)
+    const latestOpenKey = keys.find(key => props.openKeys?.indexOf(key) === -1)
     if (rootSubmenuKeys.indexOf(latestOpenKey) === -1) {
-      setOpenKeys(keys)
+      props.setOpenKeys(keys)
     } else {
-      setOpenKeys(latestOpenKey ? [latestOpenKey] : [])
+      props.setOpenKeys(latestOpenKey ? [latestOpenKey] : [])
     }
   }
 
   return (
-    <Sider trigger={null} collapsible collapsed={collapsed}>
+    <Sider trigger={null} collapsible collapsed={props.isCollapsed}>
       <div className="logo">全球新闻发布系统</div>
       <Menu
         theme="dark"
         mode="inline"
         selectedKeys={[props.location.pathname]}
-        openKeys={openKeys}
+        openKeys={props.openKeys}
         onOpenChange={onOpenChange}
         items={menu}
         onSelect={({ key }) => {
+          if (key === '/home') props.setOpenKeys([])
           props.history.push(key)
         }}
       />
@@ -95,4 +88,16 @@ function SlideMenu(props) {
   )
 }
 
-export default withRouter(SlideMenu)
+const mapStateToProps = ({ CollapsedReduer, OpenKeysReducer }) => ({
+  isCollapsed: CollapsedReduer.isCollapsed,
+  openKeys: OpenKeysReducer.openKeys
+})
+const mapDispatchToProps = {
+  setOpenKeys(payload) {
+    return {
+      type: 'change-openkeys',
+      payload
+    }
+  }
+}
+export default connect(mapStateToProps, mapDispatchToProps)(withRouter(SlideMenu))

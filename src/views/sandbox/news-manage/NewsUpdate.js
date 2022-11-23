@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { PageHeader, Steps, Button, message, Form, Input, Select, notification } from 'antd'
 import style from './NewsAdd.module.css'
 import request from 'utils/request'
-import openKeysBus from '@/redux/reducers/openKeysBus'
+import { connect } from 'react-redux'
 import NewsEditor from '@/components/news-manage/NewsEditor'
 const steps = [
   {
@@ -18,7 +18,7 @@ const steps = [
     content: '保存草稿或者提交审核'
   }
 ]
-export default function NewsUpdate(props) {
+function NewsUpdate(props) {
   const [current, setCurrent] = useState(0)
   const [categories, setCategories] = useState([])
   const [NewsForm] = Form.useForm()
@@ -68,8 +68,7 @@ export default function NewsUpdate(props) {
         auditState
       })
       .then(() => {
-        if (auditState === 1) openKeysBus.publish(['/audit-manage'])
-        console.log(2)
+        if (auditState === 1) props.setOpenKeys(['/audit-manage'])
         props.history.push(auditState === 0 ? '/news-manage/draft' : '/audit-manage/list')
         notification.info({
           message: '通知',
@@ -143,3 +142,12 @@ export default function NewsUpdate(props) {
     </div>
   )
 }
+const mapDispatchToProps = {
+  setOpenKeys(payload) {
+    return {
+      type: 'change-openkeys',
+      payload
+    }
+  }
+}
+export default connect(null, mapDispatchToProps)(NewsUpdate)

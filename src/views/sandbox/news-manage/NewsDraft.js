@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react'
 import request from 'utils/request'
 import { Table, Space, Button, Modal, notification } from 'antd'
 import { EditOutlined, DeleteOutlined, UploadOutlined, ExclamationCircleOutlined } from '@ant-design/icons'
-import openKeysBus from '@/redux/reducers/openKeysBus'
+import { connect } from 'react-redux'
 const { confirm } = Modal
-export default function NewsDraft(props) {
+
+function NewsDraft(props) {
   const [dataSource, setDataSource] = useState([])
   const { username } = JSON.parse(localStorage.getItem('token'))
   useEffect(() => {
@@ -101,7 +102,7 @@ export default function NewsDraft(props) {
           duration: 2,
           onClick: () => {
             props.history.push('/audit-manage/list')
-            openKeysBus.publish(['/audit-manage'])
+            props.setOpenKeys(['/audit-manage'])
             notification.close(id)
           }
         })
@@ -109,3 +110,12 @@ export default function NewsDraft(props) {
   }
   return <Table dataSource={dataSource} columns={columns} rowKey={item => item.id} pagination={{ pageSize: 6 }}></Table>
 }
+const mapDispatchToProps = {
+  setOpenKeys(payload) {
+    return {
+      type: 'change-openkeys',
+      payload
+    }
+  }
+}
+export default connect(null, mapDispatchToProps)(NewsDraft)

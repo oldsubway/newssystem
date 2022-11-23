@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import request from 'utils/request'
-import { Button, Space, Table } from 'antd'
+import { Button, notification, Space, Table } from 'antd'
 import { CheckOutlined, CloseOutlined } from '@ant-design/icons'
 export default function AuditAudit() {
   const [dataSource, setDataSource] = useState([])
@@ -61,6 +61,12 @@ export default function AuditAudit() {
   ]
   const handleAudit = (item, auditState, publishState) => {
     setDataSource(dataSource.filter(data => data.id !== item.id))
+    notification.info({
+      message: '通知',
+      duration: 2,
+      description: auditState === 2 ? <span style={{ color: '#1890ff' }}>已通过</span> : <span style={{ color: '#cf1322' }}>已驳回</span>,
+      placement: 'bottomRight'
+    })
     request.patch(`/news/${item.id}`, {
       auditState,
       publishState

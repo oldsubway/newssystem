@@ -90,7 +90,7 @@ export default function NewsDraft(props) {
     request.patch(`/news/${item.id}`, { auditState: 0 })
     notification.info({
       message: '通知',
-      description: '成功提交审核',
+      description: <span style={{ color: '#d46b08' }}>已撤销</span>,
       placement: 'bottomRight'
     })
   }

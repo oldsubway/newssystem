@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Redirect, Route, Switch } from 'react-router-dom'
+import { Spin } from 'antd'
+import { connect } from 'react-redux'
 import request from 'utils/request'
 
 import Home from '@/views/sandbox/home/Home'
@@ -34,7 +36,7 @@ const LocalRouterMap = {
   '/publish-manage/published': PublishPublished,
   '/publish-manage/sunset': PublishSunset
 }
-export default function NewsRouter() {
+function NewsRouter(props) {
   const [localRouter, setLocalRouter] = useState([])
   useEffect(() => {
     Promise.all([request.get('/rights'), request.get('/children')]).then(res => {
@@ -53,15 +55,21 @@ export default function NewsRouter() {
     return rights.includes(item.key)
   }
   return (
-    <Switch>
-      {localRouter.map(item => {
-        if (checkRoute(item) && checkUserPagepermission(item)) {
-          return <Route key={item.key} path={item.key} component={LocalRouterMap[item.key]} exact />
-        }
-        return null
-      })}
-      <Redirect from="/" to="/home" exact />
-      {localRouter.length > 0 && <Route path="*" component={NoPermission} />}
-    </Switch>
+    <Spin spinning={props.isSpinning}>
+      <Switch>
+        {localRouter.map(item => {
+          if (checkRoute(item) && checkUserPagepermission(item)) {
+            return <Route key={item.key} path={item.key} component={LocalRouterMap[item.key]} exact />
+          }
+          return null
+        })}
+        <Redirect from="/" to="/home" exact />
+        {localRouter.length > 0 && <Route path="*" component={NoPermission} />}
+      </Switch>
+    </Spin>
   )
 }
+const mapStateToProps = ({ SpinningReducer: { isSpinning } }) => ({
+  isSpinning
+})
+export default connect(mapStateToProps)(NewsRouter)

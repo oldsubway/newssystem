@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { PageHeader, Steps, Button, message, Form, Input, Select, notification } from 'antd'
 import style from './NewsAdd.module.css'
 import request from 'utils/request'
-import openKeysBus from '@/redux/reducers/openKeysBus'
 import NewsEditor from '@/components/news-manage/NewsEditor'
+import { connect } from 'react-redux'
 const steps = [
   {
     title: '基本信息',
@@ -18,7 +18,7 @@ const steps = [
     content: '保存草稿或者提交审核'
   }
 ]
-export default function NewsAdd(props) {
+function NewsAdd(props) {
   const [current, setCurrent] = useState(0)
   const [categories, setCategories] = useState([])
   const [NewsForm] = Form.useForm()
@@ -51,7 +51,6 @@ export default function NewsAdd(props) {
     description: item.content
   }))
   const handleSave = auditState => {
-    console.log(formInfo, content)
     request
       .post('/news', {
         ...formInfo,
@@ -66,7 +65,7 @@ export default function NewsAdd(props) {
         view: 0
       })
       .then(() => {
-        if (auditState === 1) openKeysBus.publish(['/audit-manage'])
+        if (auditState === 1) props.setOpenKeys(['/audit-manage'])
         props.history.push(auditState === 0 ? '/news-manage/draft' : '/audit-manage/list')
         notification.info({
           message: '通知',
@@ -135,3 +134,13 @@ export default function NewsAdd(props) {
     </div>
   )
 }
+
+const mapDispatchToProps = {
+  setOpenKeys(payload) {
+    return {
+      type: 'change-openkeys',
+      payload
+    }
+  }
+}
+export default connect(null, mapDispatchToProps)(NewsAdd)

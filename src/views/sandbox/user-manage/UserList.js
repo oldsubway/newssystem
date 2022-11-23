@@ -120,7 +120,6 @@ export default function UserList() {
             region,
             roleId: 3
           })
-          console.log(addForm.current.getFieldValue('roleId'))
         }, 0)
       }
     }
