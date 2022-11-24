@@ -15,18 +15,25 @@ function usePublish(publishState) {
   const handlePublish = id => {
     changeDataSource(id)
     request.patch(`/news/${id}`, { publishState: 2 })
-    notification.info({
-      message: '通知',
-      description: ''
-    })
+    withNotification('已发布')
   }
   const handleSunset = id => {
     changeDataSource(id)
     request.patch(`/news/${id}`, { publishState: 3 })
+    withNotification('已下线')
   }
   const handleDelete = id => {
     changeDataSource(id)
     request.delete(`/news/${id}`)
+    withNotification('已删除')
+  }
+  const withNotification = str => {
+    return notification.info({
+      message: '通知',
+      description: str,
+      duration: 2,
+      placement: 'bottomRight'
+    })
   }
   return { dataSource, handleDelete, handlePublish, handleSunset }
 }
