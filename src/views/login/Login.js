@@ -35,7 +35,7 @@ function Login(props) {
               }
             ]}
           >
-            <Input prefix={<UserOutlined />} />
+            <Input autoComplete="true" prefix={<UserOutlined />} />
           </Form.Item>
           <Form.Item
             name="password"
@@ -46,7 +46,7 @@ function Login(props) {
               }
             ]}
           >
-            <Input.Password prefix={<LockOutlined />} />
+            <Input.Password autoComplete="true" prefix={<LockOutlined />} />
           </Form.Item>
           <Form.Item>
             <Button type="primary" htmlType="submit" style={{ width: '100%' }}>

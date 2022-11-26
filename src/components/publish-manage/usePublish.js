@@ -14,7 +14,7 @@ function usePublish(publishState) {
   }
   const handlePublish = id => {
     changeDataSource(id)
-    request.patch(`/news/${id}`, { publishState: 2 })
+    request.patch(`/news/${id}`, { publishState: 2, publishTime: Date.now() })
     withNotification('已发布')
   }
   const handleSunset = id => {

@@ -100,7 +100,8 @@ export default function NewsDraft(props) {
   const handlePublish = item => {
     setDataSource(dataSource.filter(data => data.id !== item.id))
     request.patch(`/news/${item.id}`, {
-      publishState: 2
+      publishState: 2,
+      publishTime: Date.now()
     })
   }
   return <Table dataSource={dataSource} columns={columns} rowKey={item => item.id} pagination={{ pageSize: 6 }}></Table>
